@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pankti's Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F0E8;
+    --bg2: #EDE6D8;
+    --surface: #FDFAF5;
+    --border: rgba(139,109,76,0.12);
+    --border-med: rgba(139,109,76,0.22);
+    --text: #2C2416;
+    --muted: #7A6A55;
+    --hint: #B0A090;
+    --accent: #7B5E3A;
+    --accent-light: #F5EDE0;
+    --sage: #6B7F5E;
+    --sage-light: #EAF0E4;
+    --terra: #B5614A;
+    --terra-light: #F9EAE5;
+    --rose: #C17878;
+    --rose-light: #F9EDED;
+    --radius: 18px;
+    --radius-sm: 12px;
+    --radius-xs: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.6; }
+  .app { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
+
+  .header { margin-bottom: 2rem; }
+  .header-greeting { font-family: 'Lora', serif; font-size: 13px; font-style: italic; color: var(--muted); margin-bottom: 4px; }
+  .header-date { font-family: 'Lora', serif; font-size: 28px; font-weight: 500; color: var(--text); line-height: 1.2; }
+  .header-week { font-size: 12px; color: var(--hint); margin-top: 4px; letter-spacing: 0.04em; }
+  .header-bottom { display: flex; align-items: center; justify-content: flex-end; margin-top: 12px; }
+
+  .nav { display: flex; gap: 2px; background: var(--surface); border: 1px solid var(--border); border-radius: 50px; padding: 4px; margin-bottom: 1.75rem; }
+  .nav-btn { flex: 1; padding: 8px 4px; border: none; background: transparent; border-radius: 50px; font-size: 13px; font-family: 'Nunito', sans-serif; color: var(--muted); cursor: pointer; transition: all 0.2s; font-weight: 400; }
+  .nav-btn.active { background: var(--accent); color: #FDF8F2; font-weight: 600; }
+
+  .panel { display: none; }
+  .panel.visible { display: block; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.4rem; margin-bottom: 12px; }
+  .card-title { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--hint); margin-bottom: 14px; }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border: 1px solid var(--border-med); border-radius: 50px; background: var(--surface); color: var(--text); font-size: 13px; font-family: 'Nunito', sans-serif; cursor: pointer; transition: all 0.2s; font-weight: 500; text-decoration: none; }
+  .btn:hover { background: var(--bg2); }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--accent); color: #FDF8F2; border-color: var(--accent); }
+  .btn-primary:hover { background: #6a4f30; }
+  .btn-sm { padding: 5px 14px; font-size: 12px; }
+  .btn-danger { color: var(--terra); border-color: var(--terra); }
+
+  input[type=text], input[type=password] { width: 100%; padding: 10px 14px; border: 1px solid var(--border-med); border-radius: var(--radius-sm); font-size: 14px; font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); outline: none; transition: border-color 0.2s; }
+  input[type=text]:focus, input[type=password]:focus { border-color: var(--accent); }
+  .input-label { font-size: 12px; color: var(--muted); margin-bottom: 5px; display: block; font-weight: 500; }
+  .input-group { margin-bottom: 14px; }
+
+  .metric-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-bottom: 12px; }
+  .metric-grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-bottom: 12px; }
+  .metric { background: var(--bg2); border-radius: var(--radius-sm); padding: 0.9rem 1rem; }
+  .metric-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; font-weight: 500; letter-spacing: 0.03em; }
+  .metric-value { font-size: 22px; font-weight: 500; font-family: 'Lora', serif; color: var(--text); }
+  .metric-unit { font-size: 11px; color: var(--hint); margin-top: 2px; }
+
+  .habit-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .habit-row:last-child { border-bottom: none; }
+  .habit-left { display: flex; align-items: center; gap: 10px; }
+  .habit-name { font-size: 14px; color: var(--text); }
+  .habit-val { font-size: 13px; color: var(--muted); }
+  .check { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border-med); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .check.yes { background: var(--sage); border-color: var(--sage); }
+  .check.no { background: var(--terra-light); border-color: #e8c0b8; }
+  .check-icon { font-size: 11px; color: white; }
+
+  .mood-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 50px; font-size: 13px; font-weight: 600; }
+  .mood-great, .mood-good, .mood-upbeat { background: var(--sage-light); color: var(--sage); }
+  .mood-chill, .mood-mixed, .mood-meh { background: #FEF6E4; color: #8A6B20; }
+  .mood-flat, .mood-low, .mood-struggling { background: var(--rose-light); color: var(--rose); }
+
+  .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 12px; padding: 4px 12px; border-radius: 50px; background: var(--bg2); border: 1px solid var(--border); color: var(--muted); }
+
+  .progress-track { height: 6px; background: var(--bg2); border-radius: 6px; }
+  .progress-fill { height: 100%; background: var(--sage); border-radius: 6px; transition: width 0.4s; }
+  .progress-fill.amber { background: var(--accent); }
+  .progress-fill.red { background: var(--terra); }
+
+  .pill { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 50px; }
+  .pill-green { background: var(--sage-light); color: var(--sage); }
+  .pill-amber { background: var(--accent-light); color: var(--accent); }
+  .pill-red { background: var(--rose-light); color: var(--rose); }
+
+  .bar-chart-wrap { display: flex; flex-direction: column; }
+  .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 70px; }
+  .bar { flex: 1; border-radius: 4px 4px 0 0; min-height: 3px; transition: height 0.4s; }
+  .bar-labels { display: flex; gap: 6px; margin-top: 5px; }
+  .bar-lbl { flex: 1; text-align: center; font-size: 10px; color: var(--hint); }
+
+  .journal-note { font-size: 13px; line-height: 1.8; color: var(--muted); padding: 14px 16px; background: var(--bg); border-left: 3px solid var(--border-med); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin-top: 10px; font-style: italic; }
+  .journal-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; font-family: 'Lora', serif; }
+
+  .macro-row { margin-bottom: 10px; }
+  .macro-header { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
+
+  .upload-zone { border: 1.5px dashed var(--border-med); border-radius: var(--radius); padding: 1.5rem; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: var(--accent-light); }
+  .upload-icon { font-size: 24px; margin-bottom: 8px; }
+  .upload-label { font-size: 14px; color: var(--muted); }
+  .upload-sub { font-size: 12px; color: var(--hint); margin-top: 4px; }
+  .upload-success { font-size: 13px; color: var(--sage); margin-top: 8px; display: none; }
+
+  .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; background: var(--hint); }
+  .status-dot.connected { background: var(--sage); }
+
+  .connect-step { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 12px; font-size: 13px; line-height: 1.6; color: var(--muted); }
+  .step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--bg2); border: 1px solid var(--border-med); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; color: var(--muted); }
+  code { font-family: monospace; background: var(--bg2); padding: 2px 7px; border-radius: 6px; border: 1px solid var(--border); font-size: 12px; color: var(--text); }
+  .inline-link { color: var(--accent); text-decoration: none; }
+  .inline-link:hover { text-decoration: underline; }
+
+  .summary-section { margin-bottom: 12px; }
+  .summary-section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--hint); margin-bottom: 8px; }
+  .summary-text { font-size: 14px; line-height: 1.9; color: var(--text); }
+
+  .data-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .data-row:last-child { border-bottom: none; }
+  .data-key { color: var(--muted); }
+  .data-val { font-weight: 500; color: var(--text); }
+
+  .toast { font-size: 12px; color: var(--sage); margin-left: 8px; opacity: 0; transition: opacity 0.3s; }
+
+  .cycle-tag { font-size: 12px; padding: 6px 14px; border-radius: 50px; border: 1px solid var(--border-med); cursor: pointer; background: transparent; color: var(--muted); transition: all 0.2s; font-family: 'Nunito', sans-serif; font-weight: 500; }
+  .cycle-tag.active { background: #FDF0F5; border-color: #E8A0B4; color: #9A3060; }
+
+  .mood-trend { display: flex; gap: 8px; align-items: flex-end; margin-top: 10px; }
+  .mood-dot-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .mood-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; margin: 0 auto; }
+  .mood-dot-label { font-size: 10px; color: var(--hint); }
+
+  .empty { font-size: 13px; color: var(--hint); text-align: center; padding: 1.5rem 0; line-height: 1.7; }
+  textarea { width: 100%; border: 1px solid var(--border-med); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 14px; font-family: 'Nunito', sans-serif; color: var(--text); background: var(--bg); resize: vertical; outline: none; min-height: 70px; line-height: 1.7; }
+  textarea:focus { border-color: var(--accent); }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
+  .loading { animation: pulse 1.5s infinite; color: var(--hint); font-size: 13px; }
+
+  /* ── Mobile optimisation ─────────────────────────── */
+  @media (max-width: 600px) {
+    .app { padding: 1.25rem 1rem 6rem; }
+
+    .header-date { font-size: 22px; }
+
+    /* Nav: smaller text, tighter padding, fixed to bottom */
+    .nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      margin: 0;
+      border-radius: 0;
+      border-top: 1px solid rgba(139,109,76,0.15);
+      border-left: none; border-right: none; border-bottom: none;
+      padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+      background: #FDFAF5;
+      z-index: 100;
+    }
+    .nav-btn { font-size: 11px; padding: 7px 2px; }
+
+    /* Cards: slightly less padding */
+    .card { padding: 1rem 1.1rem; border-radius: 14px; }
+
+    /* Metric grids: 2-col on mobile for 3-col grids */
+    .metric-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .metric-grid-4 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+
+    /* Larger tap targets for habits */
+    .habit-row { padding: 12px 0; }
+    .check { width: 26px; height: 26px; }
+
+    /* Cycle tags wrap more naturally */
+    .cycle-tag { font-size: 13px; padding: 8px 14px; }
+
+    /* Bigger textarea */
+    textarea { min-height: 80px; font-size: 15px; }
+
+    /* Summary sections */
+    .summary-text { font-size: 15px; }
+
+    /* Upload zones: less padding */
+    .upload-zone { padding: 1.25rem 1rem; }
+
+    /* Connect steps: easier to read */
+    .connect-step { font-size: 14px; line-height: 1.7; }
+
+    /* Data rows: bigger touch area */
+    .data-row { padding: 11px 0; }
+
+    /* Buttons: full-width primary on mobile */
+    .btn-primary { width: 100%; justify-content: center; padding: 12px 18px; font-size: 14px; }
+
+    /* Mood dots: slightly bigger */
+    .mood-dot { width: 36px; height: 36px; font-size: 17px; }
+
+    /* Metric values: slightly smaller to fit 2-col */
+    .metric-value { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="header-greeting" id="h-greeting">good morning</div>
+    <div class="header-date" id="h-date">–</div>
+    <div class="header-week" id="h-week">–</div>
+    <div class="header-bottom">
+      <button class="btn btn-sm" onclick="saveDay()">Save today</button>
+      <span class="toast" id="toast">Saved</span>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn active" onclick="tab('today',this)">Today</button>
+    <button class="nav-btn" onclick="tab('week',this)">This week</button>
+    <button class="nav-btn" onclick="tab('upload',this)">Import</button>
+    <button class="nav-btn" onclick="tab('connect',this)">Connect</button>
+    <button class="nav-btn" onclick="tab('summary',this)">Summary</button>
+  </div>
+
+  <!-- TODAY -->
+  <div class="panel visible" id="panel-today">
+
+    <div class="card" id="fitbit-card" style="display:none;">
+      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>Movement & sleep</span>
+        <button class="btn btn-sm" onclick="loadFitbitToday()" style="padding:3px 8px;font-size:11px;">↻</button>
+      </div>
+      <div class="metric-grid">
+        <div class="metric">
+          <div class="metric-label">Steps</div>
+          <div class="metric-value" id="fb-steps">–</div>
+          <div class="metric-unit">/ 10,000</div>
+          <div class="progress-track" style="margin-top:6px;"><div class="progress-fill" id="steps-fill" style="width:0%"></div></div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Sleep</div>
+          <div class="metric-value" id="fb-sleep">–</div>
+          <div class="metric-unit">hours</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Resting HR</div>
+          <div class="metric-value" id="fb-hr">–</div>
+          <div class="metric-unit">bpm</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="notion-habits-card" style="display:none;">
+      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>Today's habits</span>
+        <button class="btn btn-sm" onclick="loadNotion()" style="padding:3px 8px;font-size:11px;">↻</button>
+      </div>
+      <div id="notion-habits-list"><div class="loading">Loading from Notion…</div></div>
+    </div>
+
+    <div class="card" id="notion-fallback-card">
+      <div class="card-title">Today's habits</div>
+      <div class="empty">Connect Notion on the Connect tab to see your habits here.</div>
+    </div>
+
+    <div class="card" id="daylio-today-card" style="display:none;">
+      <div class="card-title">How you're feeling — Daylio</div>
+      <div id="daylio-today-content"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Cycle phase</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="cycle-tag" onclick="setCycle(this,'Menstrual')">Menstrual</button>
+        <button class="cycle-tag" onclick="setCycle(this,'Follicular')">Follicular</button>
+        <button class="cycle-tag" onclick="setCycle(this,'Ovulation')">Ovulation</button>
+        <button class="cycle-tag" onclick="setCycle(this,'Luteal')">Luteal</button>
+        <button class="cycle-tag" onclick="setCycle(this,'Not tracking')">Not tracking today</button>
+      </div>
+    </div>
+
+    <div class="card" id="food-today-card" style="display:none;">
+      <div class="card-title">Food today — My Net Diary</div>
+      <div id="food-today-content"></div>
+    </div>
+
+    <div class="card" id="food-fallback-card">
+      <div class="card-title">Food today</div>
+      <div class="empty">Import your My Net Diary CSV on the Import tab to see nutrition data here.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Quick note</div>
+      <textarea id="notes" placeholder="Anything to capture that isn't in your other apps…"></textarea>
+    </div>
+
+  </div>
+
+  <!-- WEEK -->
+  <div class="panel" id="panel-week">
+
+    <div class="card">
+      <div class="card-title">Habit streaks this week</div>
+      <div id="week-habits"><div class="empty">Connect Notion or log some days to see your streaks.</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Movement & sleep</div>
+      <div class="metric-grid" style="margin-bottom:14px;">
+        <div class="metric"><div class="metric-label">Avg sleep</div><div class="metric-value" id="w-sleep">–</div><div class="metric-unit">h / night</div></div>
+        <div class="metric"><div class="metric-label">Avg steps</div><div class="metric-value" id="w-steps">–</div><div class="metric-unit">/ day</div></div>
+        <div class="metric"><div class="metric-label">Active days</div><div class="metric-value" id="w-active">–</div><div class="metric-unit">this week</div></div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Sleep (hours)</div>
+      <div class="bar-chart-wrap">
+        <div class="bar-chart" id="sleep-bars"></div>
+        <div class="bar-labels" id="sleep-bar-lbls"></div>
+      </div>
+    </div>
+
+    <div class="card" id="mood-week-card" style="display:none;">
+      <div class="card-title">Mood this week — Daylio</div>
+      <div class="mood-trend" id="mood-trend"></div>
+    </div>
+
+    <div class="card" id="food-week-card" style="display:none;">
+      <div class="card-title">Nutrition this week — My Net Diary</div>
+      <div class="metric-grid-4" id="food-week-metrics"></div>
+      <div id="food-week-macros"></div>
+    </div>
+
+  </div>
+
+  <!-- IMPORT -->
+  <div class="panel" id="panel-upload">
+    <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:1.25rem;">Drop your weekly exports here. Everything is read locally — nothing leaves your browser.</div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="width:36px;height:36px;border-radius:9px;background:#F0F4FF;display:flex;align-items:center;justify-content:center;font-size:16px;">📔</div>
+        <div><div style="font-size:14px;font-weight:500;">Daylio</div><div style="font-size:12px;color:var(--muted);">More → Export Entries → CSV</div></div>
+        <div style="margin-left:auto;font-size:12px;color:var(--hint);" id="daylio-status">Not imported</div>
+      </div>
+      <div class="upload-zone" id="daylio-zone" onclick="document.getElementById('daylio-file').click()" ondragover="dragOver(event,'daylio-zone')" ondragleave="dragLeave('daylio-zone')" ondrop="dropFile(event,'daylio')">
+        <div class="upload-icon">📂</div>
+        <div class="upload-label">Click or drag your Daylio CSV here</div>
+        <div class="upload-sub">daylio_export_YYYY_MM_DD.csv</div>
+        <div class="upload-success" id="daylio-success">✓ Imported successfully</div>
+      </div>
+      <input type="file" id="daylio-file" accept=".csv" style="display:none;" onchange="handleFile(event,'daylio')">
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="width:36px;height:36px;border-radius:9px;background:#FFF5EE;display:flex;align-items:center;justify-content:center;font-size:16px;">🥗</div>
+        <div><div style="font-size:14px;font-weight:500;">My Net Diary</div><div style="font-size:12px;color:var(--muted);">Reports → Export → CSV</div></div>
+        <div style="margin-left:auto;font-size:12px;color:var(--hint);" id="mnd-status">Not imported</div>
+      </div>
+      <div class="upload-zone" id="mnd-zone" onclick="document.getElementById('mnd-file').click()" ondragover="dragOver(event,'mnd-zone')" ondragleave="dragLeave('mnd-zone')" ondrop="dropFile(event,'mnd')">
+        <div class="upload-icon">📂</div>
+        <div class="upload-label">Click or drag your My Net Diary CSV here</div>
+        <div class="upload-sub">MyNetDiary_Year_YYYY.csv</div>
+        <div class="upload-success" id="mnd-success">✓ Imported successfully</div>
+      </div>
+      <input type="file" id="mnd-file" accept=".csv" style="display:none;" onchange="handleFile(event,'mnd')">
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:36px;height:36px;border-radius:9px;background:#FFF0F5;display:flex;align-items:center;justify-content:center;font-size:16px;">🌸</div>
+        <div><div style="font-size:14px;font-weight:500;">Clue</div><div style="font-size:12px;color:var(--muted);">No export available — log your cycle phase on the Today tab</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONNECT -->
+  <div class="panel" id="panel-connect">
+    <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:1.25rem;">Credentials are stored only in your browser — nothing is sent anywhere.</div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:#00B0B9;display:flex;align-items:center;justify-content:center;font-size:18px;">🏃</div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:500;">Fitbit</div><div style="font-size:12px;color:var(--muted);"><span class="status-dot" id="fb-dot"></span><span id="fb-status-text">Not connected</span></div></div>
+        <button class="btn btn-sm btn-danger" id="fb-disconnect-btn" style="display:none;" onclick="disconnectFitbit()">Disconnect</button>
+      </div>
+      <div id="fb-setup">
+        <div class="connect-step"><span class="step-num">1</span><span>Go to <a href="https://dev.fitbit.com/apps/new" target="_blank" class="inline-link">dev.fitbit.com/apps/new</a>, create a <strong>Personal</strong> app.</span></div>
+        <div class="connect-step"><span class="step-num">2</span><span>Set Redirect URI to: <code id="redirect-uri-display">loading…</code></span></div>
+        <div class="connect-step"><span class="step-num">3</span><span>Paste your <strong>Client ID</strong> below.</span></div>
+        <div class="input-group"><label class="input-label">Client ID</label><input type="text" id="fb-client-id" placeholder="e.g. 23ABCD" oninput="updateFitbitURL()"></div>
+        <div id="fb-auth-wrap" style="display:none;">
+          <a id="fb-auth-link" href="#" target="_blank" class="btn btn-primary">Connect Fitbit →</a>
+          <div style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6;">After authorising, paste the redirect URL here:</div>
+          <div class="input-group" style="margin-top:8px;"><input type="text" id="fb-callback-url" placeholder="Paste the redirect URL here…" oninput="parseFitbitCallback()"></div>
+        </div>
+      </div>
+      <div id="fb-connected-info" style="display:none;">
+        <div style="font-size:13px;color:var(--accent);margin-bottom:10px;">✓ Connected</div>
+        <button class="btn" onclick="loadFitbitToday()">↻ Refresh today's data</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:#000;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:#fff;">N</div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:500;">Notion</div><div style="font-size:12px;color:var(--muted);"><span class="status-dot" id="notion-dot"></span><span id="notion-status-text">Not connected</span></div></div>
+        <button class="btn btn-sm btn-danger" id="notion-disconnect-btn" style="display:none;" onclick="disconnectNotion()">Disconnect</button>
+      </div>
+      <div id="notion-setup">
+        <div class="connect-step"><span class="step-num">1</span><span>Go to <a href="https://www.notion.so/my-integrations" target="_blank" class="inline-link">notion.so/my-integrations</a> → New integration → Save.</span></div>
+        <div class="connect-step"><span class="step-num">2</span><span>Copy the <strong>Internal Integration Secret</strong> (starts with <code>secret_</code>).</span></div>
+        <div class="connect-step"><span class="step-num">3</span><span>Open your habit database → <strong>···</strong> → Connections → add your integration.</span></div>
+        <div class="input-group"><label class="input-label">Integration secret</label><input type="password" id="notion-token" placeholder="secret_…"></div>
+        <div class="input-group"><label class="input-label">Database ID</label><input type="text" id="notion-db-id" placeholder="32-character string from the database URL"></div>
+        <button class="btn btn-primary" onclick="connectNotion()" style="margin-top:4px;">Connect Notion →</button>
+      </div>
+      <div id="notion-connected-info" style="display:none;">
+        <div style="font-size:13px;color:var(--accent);margin-bottom:10px;">✓ Connected — <span id="notion-db-name"></span></div>
+        <button class="btn" onclick="loadNotion()">↻ Refresh entries</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="panel" id="panel-summary">
+    <div class="card">
+      <div class="card-title">Weekly summary</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:14px;">A personalised review across all your data. Direct, kind, and focused on what matters.</div>
+      <button class="btn btn-primary" onclick="generateSummary()" id="summary-btn">Generate my weekly summary →</button>
+    </div>
+    <div id="summary-sections" style="display:none;">
+      <div class="card summary-section"><div class="summary-section-label">Habits — how you showed up</div><div class="summary-text" id="sum-habits"></div></div>
+      <div class="card summary-section"><div class="summary-section-label">Movement & sleep</div><div class="summary-text" id="sum-movement"></div></div>
+      <div class="card summary-section"><div class="summary-section-label">How you've been feeling</div><div class="summary-text" id="sum-mental"></div></div>
+      <div class="card summary-section"><div class="summary-section-label">Food & nourishment</div><div class="summary-text" id="sum-food"></div></div>
+      <div class="card" style="background:var(--accent-light);border-color:rgba(123,94,58,0.18);"><div class="summary-section-label" style="color:var(--accent);">Focus for next week</div><div class="summary-text" id="sum-focus"></div></div>
+    </div>
+  </div>
+
+</div>
+<script>
+const NOTION_PROXY = 'https://notion-proxy.pankti-shah0410.workers.dev';
+const FITBIT_SCOPES = 'activity+sleep+heartrate+profile';
+const MOOD_EMOJI = { great:'😄', good:'🙂', upbeat:'😊', chill:'😌', mixed:'😐', meh:'😑', flat:'😶', low:'😔', struggling:'😢' };
+const MOOD_SCORE = { great:5, upbeat:5, good:4, chill:3, mixed:3, meh:2, flat:2, low:1, struggling:1 };
+const NOTION_CHECKBOXES = ['Surya Namaskar?','Ghee in the morning?','Ate out?','Dinner before 9pm?','Slept before 11pm?','Read book?','Alcohol?','Weed?','Worked on Aaina?'];
+const FRIENDLY = { 'Surya Namaskar?':'Surya Namaskar','Ghee in the morning?':'Ghee in the morning','Ate out?':'Ate out','Dinner before 9pm?':'Dinner before 9pm','Slept before 11pm?':'Slept before 11pm','Read book?':'Read','Alcohol?':'Alcohol','Weed?':'Weed','Worked on Aaina?':'Worked on Aaina' };
+const INVERTED = ['Ate out?','Alcohol?','Weed?'];
+
+let store = JSON.parse(localStorage.getItem('dash_v2') || '{}');
+function save() { try { localStorage.setItem('dash_v2', JSON.stringify(store)); } catch(e) {} }
+
+window.onload = () => {
+  const now = new Date();
+  document.getElementById('h-date').textContent = now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('h-week').textContent = 'Week ' + getWeekNum(now);
+  const hr=now.getHours(); document.getElementById('h-greeting').textContent = hr<12?'good morning, Pankti':hr<17?'good afternoon, Pankti':'good evening, Pankti';
+  document.getElementById('redirect-uri-display').textContent = window.location.href.split('?')[0].split('#')[0];
+  checkFitbitToken(); checkNotionToken(); restoreState();
+  renderDaylioToday(); renderFoodToday();
+  if (store['daylio_data']?.length) { document.getElementById('daylio-status').textContent = store['daylio_data'].length+' entries'; document.getElementById('daylio-status').style.color='var(--accent)'; }
+  if (store['mnd_data']?.length) { document.getElementById('mnd-status').textContent = store['mnd_data'].length+' days'; document.getElementById('mnd-status').style.color='var(--accent)'; }
+  const hash = window.location.hash;
+  if (hash.includes('access_token')) {
+    const params = new URLSearchParams(hash.substring(1));
+    const token = params.get('access_token');
+    if (token) { storeFitbitToken(token, parseInt(params.get('expires_in')||'28800')); window.history.replaceState({},'',window.location.pathname); }
+  }
+};
+
+function getWeekNum(d) { const j=new Date(d.getFullYear(),0,1); return Math.ceil((((d-j)/86400000)+j.getDay()+1)/7); }
+function getWeekDates() {
+  const now=new Date(); const day=now.getDay()===0?6:now.getDay()-1;
+  const mon=new Date(now); mon.setDate(now.getDate()-day);
+  return Array.from({length:7},(_,i)=>{ const d=new Date(mon); d.setDate(mon.getDate()+i); return d.toISOString().split('T')[0]; });
+}
+function formatDate(s) { if(!s)return'–'; try{return new Date(s).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});}catch(e){return s;} }
+
+function tab(name,btn) {
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('visible'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('visible');
+  if (name==='week') renderWeek();
+}
+
+function restoreState() {
+  if (store['cycle_phase']) document.querySelectorAll('.cycle-tag').forEach(t=>{ if(t.textContent===store['cycle_phase'])t.classList.add('active'); });
+  if (store['notes']) document.getElementById('notes').value = store['notes'];
+}
+
+function setCycle(btn,phase) { document.querySelectorAll('.cycle-tag').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); store['cycle_phase']=phase; save(); }
+
+function saveDay() {
+  store['notes'] = document.getElementById('notes').value;
+  const today = new Date().toISOString().split('T')[0];
+  const wk = store['week_array']||[];
+  const entry = { date:today, notes:store['notes'], cycle:store['cycle_phase']||'' };
+  const idx = wk.findIndex(d=>d.date===today);
+  if (idx>=0) wk[idx]={...wk[idx],...entry}; else wk.push(entry);
+  store['week_array'] = wk.slice(-14); save();
+  const t = document.getElementById('toast'); t.style.opacity='1'; setTimeout(()=>t.style.opacity='0',1800);
+}
+
+// Fitbit
+function updateFitbitURL() {
+  const id = document.getElementById('fb-client-id').value.trim();
+  if (id.length>3) {
+    document.getElementById('fb-auth-wrap').style.display='block';
+    const ru = encodeURIComponent(window.location.href.split('?')[0].split('#')[0]);
+    document.getElementById('fb-auth-link').href = `https://www.fitbit.com/oauth2/authorize?response_type=token&client_id=${id}&redirect_uri=${ru}&scope=${FITBIT_SCOPES}&expires_in=604800`;
+    store['fb_client_id']=id; save();
+  } else { document.getElementById('fb-auth-wrap').style.display='none'; }
+}
+function parseFitbitCallback() {
+  const url = document.getElementById('fb-callback-url').value.trim();
+  const hi = url.indexOf('#'); if(hi===-1)return;
+  const p = new URLSearchParams(url.substring(hi+1));
+  const t = p.get('access_token'); if(t) storeFitbitToken(t,parseInt(p.get('expires_in')||'28800'));
+}
+function storeFitbitToken(token,exp) { store['fb_token']=token; store['fb_token_expires']=Date.now()+exp*1000; save(); setFitbitConnected(); loadFitbitToday(); loadFitbitWeek(); }
+function checkFitbitToken() { if(store['fb_token']&&store['fb_token_expires']>Date.now()){setFitbitConnected();loadFitbitToday();loadFitbitWeek();} if(store['fb_client_id']){document.getElementById('fb-client-id').value=store['fb_client_id'];updateFitbitURL();} }
+function setFitbitConnected() { document.getElementById('fb-dot').classList.add('connected'); document.getElementById('fb-status-text').textContent='Connected'; document.getElementById('fb-setup').style.display='none'; document.getElementById('fb-connected-info').style.display='block'; document.getElementById('fb-disconnect-btn').style.display='inline-flex'; document.getElementById('fitbit-card').style.display='block'; }
+function disconnectFitbit() { delete store['fb_token']; delete store['fb_token_expires']; save(); document.getElementById('fb-dot').classList.remove('connected'); document.getElementById('fb-status-text').textContent='Not connected'; document.getElementById('fb-setup').style.display='block'; document.getElementById('fb-connected-info').style.display='none'; document.getElementById('fb-disconnect-btn').style.display='none'; document.getElementById('fitbit-card').style.display='none'; }
+async function fitbitGet(path) { const r=await fetch(`https://api.fitbit.com${path}`,{headers:{'Authorization':'Bearer '+store['fb_token']}}); if(!r.ok)throw new Error(r.status); return r.json(); }
+async function loadFitbitToday() {
+  const today=new Date().toISOString().split('T')[0];
+  try { const a=await fitbitGet(`/1/user/-/activities/date/${today}.json`); const s=a?.summary?.steps??0; document.getElementById('fb-steps').textContent=s.toLocaleString(); document.getElementById('steps-fill').style.width=Math.min(100,Math.round(s/10000*100))+'%'; store['fb_steps_today']=s; save(); } catch(e){ document.getElementById('fb-steps').textContent='–'; }
+  try { const sl=await fitbitGet(`/1.2/user/-/sleep/date/${today}.json`); const h=((sl?.summary?.totalMinutesAsleep??0)/60).toFixed(1); document.getElementById('fb-sleep').textContent=h; store['fb_sleep_today']=parseFloat(h); save(); } catch(e){ document.getElementById('fb-sleep').textContent='–'; }
+  try { const hr=await fitbitGet(`/1/user/-/activities/heart/date/${today}/1d.json`); document.getElementById('fb-hr').textContent=hr?.['activities-heart']?.[0]?.value?.restingHeartRate??'–'; } catch(e){ document.getElementById('fb-hr').textContent='–'; }
+}
+async function loadFitbitWeek() {
+  const today=new Date().toISOString().split('T')[0];
+  try { const d=await fitbitGet(`/1/user/-/activities/steps/date/${today}/7d.json`); store['fb_steps_week']=(d?.['activities-steps']||[]).map(x=>({date:x.dateTime,val:parseInt(x.value)||0})); save(); } catch(e){}
+  try { const sl=await fitbitGet(`/1.2/user/-/sleep/date/${today}/7d.json`); const bd={}; (sl?.sleep||[]).forEach(s=>{bd[s.dateOfSleep]=(bd[s.dateOfSleep]||0)+(s.minutesAsleep||0);}); store['fb_sleep_week']=Object.entries(bd).sort().map(([date,mins])=>({date,val:parseFloat((mins/60).toFixed(1))})); save(); } catch(e){}
+}
+
+// Notion
+async function connectNotion() {
+  const token=document.getElementById('notion-token').value.trim();
+  const dbId=document.getElementById('notion-db-id').value.trim().replace(/-/g,'');
+  if(!token||!dbId){alert('Please enter both fields.');return;}
+  try {
+    const r=await fetch(`${NOTION_PROXY}/v1/databases/${dbId}`,{headers:{'Authorization':'Bearer '+token,'Notion-Version':'2022-06-28','Content-Type':'application/json'}});
+    if(!r.ok){const e=await r.json();alert(`Notion error: ${e.message||r.status}. Make sure you've added the integration to the database (··· → Connections).`);return;}
+    const db=await r.json(); store['notion_token']=token; store['notion_db_id']=dbId; store['notion_db_name']=db.title?.[0]?.plain_text||'Your database'; save(); setNotionConnected(); loadNotion();
+  } catch(e){alert('Connection failed. Check your token and database ID.');}
+}
+function checkNotionToken() { if(store['notion_token']&&store['notion_db_id']){setNotionConnected();loadNotion();} if(store['notion_token'])document.getElementById('notion-token').value=store['notion_token']; if(store['notion_db_id'])document.getElementById('notion-db-id').value=store['notion_db_id']; }
+function setNotionConnected() { document.getElementById('notion-dot').classList.add('connected'); document.getElementById('notion-status-text').textContent='Connected'; document.getElementById('notion-setup').style.display='none'; document.getElementById('notion-connected-info').style.display='block'; document.getElementById('notion-disconnect-btn').style.display='inline-flex'; document.getElementById('notion-db-name').textContent=store['notion_db_name']||''; document.getElementById('notion-habits-card').style.display='block'; document.getElementById('notion-fallback-card').style.display='none'; }
+function disconnectNotion() { delete store['notion_token']; delete store['notion_db_id']; save(); document.getElementById('notion-dot').classList.remove('connected'); document.getElementById('notion-status-text').textContent='Not connected'; document.getElementById('notion-setup').style.display='block'; document.getElementById('notion-connected-info').style.display='none'; document.getElementById('notion-disconnect-btn').style.display='none'; document.getElementById('notion-habits-card').style.display='none'; document.getElementById('notion-fallback-card').style.display='block'; }
+async function loadNotion() {
+  const token=store['notion_token'],dbId=store['notion_db_id']; if(!token||!dbId)return;
+  const el=document.getElementById('notion-habits-list'); el.innerHTML='<div class="loading">Loading…</div>';
+  try {
+    const r=await fetch(`${NOTION_PROXY}/v1/databases/${dbId}/query`,{method:'POST',headers:{'Authorization':'Bearer '+token,'Notion-Version':'2022-06-28','Content-Type':'application/json'},body:JSON.stringify({page_size:7,sorts:[{timestamp:'created_time',direction:'descending'}]})});
+    if(!r.ok)throw new Error(r.status);
+    const data=await r.json(); const pages=data.results||[];
+    if(!pages.length){el.innerHTML='<div class="empty">No entries found.</div>';return;}
+    store['notion_pages']=pages.map(extractNotionEntry); save();
+    renderNotionEntry(store['notion_pages'][0],el);
+  } catch(e){el.innerHTML='<div class="empty">Could not load — check your connection on the Connect tab.</div>';}
+}
+function extractNotionEntry(page) {
+  const props=page.properties||{}; const entry={date:page.created_time?.split('T')[0]||''};
+  Object.entries(props).forEach(([k,v])=>{
+    if(v.type==='checkbox')entry[k]=v.checkbox;
+    else if(v.type==='select'&&v.select)entry[k]=v.select.name;
+    else if(v.type==='title')entry[k]=v.title?.[0]?.plain_text||'';
+    else if(v.type==='rich_text')entry[k]=v.rich_text?.[0]?.plain_text||'';
+    else if(v.type==='date'&&v.date)entry[k]=v.date.start;
+  });
+  return entry;
+}
+function renderNotionEntry(entry,el) {
+  if(!entry){el.innerHTML='<div class="empty">No entries yet.</div>';return;}
+  const checks=NOTION_CHECKBOXES.filter(k=>k in entry).map(k=>{
+    const v=entry[k]; const cls=v===true?'yes':v===false?'no':''; const icon=v===true?'✓':v===false?'✗':'';
+    return `<div class="habit-row"><div class="habit-left"><div class="check ${cls}"><span class="check-icon">${icon}</span></div><span class="habit-name">${FRIENDLY[k]||k}</span></div></div>`;
+  }).join('');
+  const ex=entry['Exercise?']?`<div class="habit-row"><div class="habit-left"><div class="check yes"><span class="check-icon">✓</span></div><span class="habit-name">Exercise</span></div><span class="habit-val">${entry['Exercise?']}</span></div>`:'';
+  const meals=['Breakfast','Lunch','Dinner'].filter(m=>entry[m]).map(m=>`<div class="data-row"><span class="data-key">${m}</span><span class="data-val" style="font-size:13px;max-width:60%;text-align:right;">${entry[m]}</span></div>`).join('');
+  const moodNote=entry['Mood?']?`<div style="font-size:13px;color:var(--muted);margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);">Mood: <span style="color:var(--text);">${entry['Mood?']}</span></div>`:'';
+  const mind=entry['Anything on your mind?']?`<div class="journal-note" style="margin-top:10px;">${entry['Anything on your mind?']}</div>`:'';
+  el.innerHTML=`<div style="font-size:12px;color:var(--hint);margin-bottom:10px;">Entry from ${formatDate(entry['date']||entry['Date'])}</div>${checks}${ex}${meals?`<div style="margin-top:10px;">${meals}</div>`:''}${moodNote}${mind}`;
+}
+
+// CSV parsing
+function parseCSV(text) {
+  const lines=text.trim().split('\n');
+  const headers=lines[0].split(',').map(h=>h.replace(/"/g,'').trim());
+  return lines.slice(1).map(line=>{ const vals=[];let cur='';let inQ=false; for(let i=0;i<line.length;i++){if(line[i]==='"'){inQ=!inQ;}else if(line[i]===','&&!inQ){vals.push(cur.trim());cur='';}else cur+=line[i];} vals.push(cur.trim()); const obj={}; headers.forEach((h,i)=>{obj[h]=(vals[i]||'').replace(/^"|"$/g,'');}); return obj; });
+}
+function parseDaylio(text) {
+  return parseCSV(text).map(r=>({ date:r['full_date']||r['date']||'', mood:(r['mood']||'').toLowerCase().trim(), activities:r['activities']||'', noteTitle:r['note_title']||'', note:(r['note']||'').replace(/<br>/g,'\n').replace(/<[^>]+>/g,'') })).filter(r=>r.date);
+}
+function parseMND(text) {
+  const rows=parseCSV(text); const byDate={};
+  rows.forEach(r=>{ const raw=r['Date & Time']||''; if(!raw)return; let date;
+    try{ const d=new Date(raw); if(isNaN(d.getTime())){ const p=raw.trim().split(' '); date=`${p[2]}-${String(p[0]).padStart(2,'0')}-${String(p[1]).padStart(2,'0')}`; } else { date=d.toISOString().split('T')[0]; } } catch(e){return;}
+    if(!byDate[date])byDate[date]={date,cals:0,protein:0,carbs:0,fat:0,meals:{}};
+    byDate[date].cals+=parseFloat(r['Calories, cals'])||0; byDate[date].protein+=parseFloat(r['Protein, g'])||0; byDate[date].carbs+=parseFloat(r['Total Carbs, g'])||0; byDate[date].fat+=parseFloat(r['Total Fat, g'])||0;
+    const meal=r['Meal']||'Other'; byDate[date].meals[meal]=(byDate[date].meals[meal]||0)+(parseFloat(r['Calories, cals'])||0);
+  });
+  return Object.values(byDate).map(d=>({...d,cals:Math.round(d.cals),protein:Math.round(d.protein),carbs:Math.round(d.carbs),fat:Math.round(d.fat),meals:Object.fromEntries(Object.entries(d.meals).map(([k,v])=>[k,Math.round(v)]))})).sort((a,b)=>a.date.localeCompare(b.date));
+}
+
+function handleFile(event,type) {
+  const file=event.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const text=e.target.result;
+    if(type==='daylio'){ const data=parseDaylio(text); store['daylio_data']=data; save(); document.getElementById('daylio-status').textContent=`${data.length} entries`; document.getElementById('daylio-status').style.color='var(--accent)'; document.getElementById('daylio-success').style.display='block'; renderDaylioToday(); }
+    else if(type==='mnd'){ const data=parseMND(text); store['mnd_data']=data; save(); document.getElementById('mnd-status').textContent=`${data.length} days`; document.getElementById('mnd-status').style.color='var(--accent)'; document.getElementById('mnd-success').style.display='block'; renderFoodToday(); }
+  };
+  reader.readAsText(file);
+}
+function dragOver(e,id){e.preventDefault();document.getElementById(id).classList.add('drag');}
+function dragLeave(id){document.getElementById(id).classList.remove('drag');}
+function dropFile(e,type){e.preventDefault();dragLeave(type==='daylio'?'daylio-zone':'mnd-zone');const file=e.dataTransfer.files[0];if(!file)return;const inp=document.getElementById(type==='daylio'?'daylio-file':'mnd-file');const dt=new DataTransfer();dt.items.add(file);inp.files=dt.files;handleFile({target:inp},type);}
+
+function renderDaylioToday() {
+  const data=store['daylio_data']; if(!data||!data.length){document.getElementById('daylio-today-card').style.display='none';return;}
+  const today=new Date().toISOString().split('T')[0];
+  const entry=data.find(d=>d.date===today)||data[data.length-1]; if(!entry)return;
+  document.getElementById('daylio-today-card').style.display='block';
+  const emoji=MOOD_EMOJI[entry.mood]||'😐';
+  const acts=entry.activities?entry.activities.split('|').map(a=>`<span class="tag">${a.trim()}</span>`).join(''):'';
+  const note=entry.note?`<div class="journal-note">${entry.note.substring(0,400)}${entry.note.length>400?'…':''}</div>`:'';
+  const title=entry.noteTitle?`<div class="journal-title">${entry.noteTitle}</div>`:'';
+  document.getElementById('daylio-today-content').innerHTML=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><span class="mood-badge mood-${entry.mood}">${emoji} ${entry.mood}</span><span style="font-size:12px;color:var(--hint);">${formatDate(entry.date)}</span></div>${acts?`<div class="tag-row" style="margin-bottom:10px;">${acts}</div>`:''}${title}${note}`;
+}
+
+function renderFoodToday() {
+  const data=store['mnd_data']; if(!data||!data.length){document.getElementById('food-today-card').style.display='none';return;}
+  const today=new Date().toISOString().split('T')[0];
+  const entry=data.find(d=>d.date===today)||data[data.length-1]; if(!entry)return;
+  document.getElementById('food-today-card').style.display='block'; document.getElementById('food-fallback-card').style.display='none';
+  const tot=entry.protein+entry.carbs+entry.fat||1;
+  const meals=Object.entries(entry.meals).map(([m,c])=>`<div class="data-row"><span class="data-key">${m}</span><span class="data-val">${c} cal</span></div>`).join('');
+  document.getElementById('food-today-content').innerHTML=`
+    <div style="font-size:12px;color:var(--hint);margin-bottom:10px;">${formatDate(entry.date)}</div>
+    <div class="metric-grid-4" style="margin-bottom:14px;">
+      <div class="metric"><div class="metric-label">Calories</div><div class="metric-value" style="font-size:18px;">${entry.cals}</div></div>
+      <div class="metric"><div class="metric-label">Protein</div><div class="metric-value" style="font-size:18px;">${entry.protein}g</div></div>
+      <div class="metric"><div class="metric-label">Carbs</div><div class="metric-value" style="font-size:18px;">${entry.carbs}g</div></div>
+      <div class="metric"><div class="metric-label">Fat</div><div class="metric-value" style="font-size:18px;">${entry.fat}g</div></div>
+    </div>
+    <div class="macro-row"><div class="macro-header"><span>Protein</span><span style="color:var(--muted);">${Math.round(entry.protein/tot*100)}%</span></div><div class="progress-track"><div class="progress-fill" style="width:${Math.round(entry.protein/tot*100)}%"></div></div></div>
+    <div class="macro-row"><div class="macro-header"><span>Carbs</span><span style="color:var(--muted);">${Math.round(entry.carbs/tot*100)}%</span></div><div class="progress-track"><div class="progress-fill amber" style="width:${Math.round(entry.carbs/tot*100)}%"></div></div></div>
+    <div class="macro-row" style="margin-bottom:14px;"><div class="macro-header"><span>Fat</span><span style="color:var(--muted);">${Math.round(entry.fat/tot*100)}%</span></div><div class="progress-track"><div class="progress-fill red" style="width:${Math.round(entry.fat/tot*100)}%"></div></div></div>
+    ${meals?`<div style="border-top:0.5px solid var(--border);padding-top:10px;">${meals}</div>`:''}`;
+}
+
+// Week
+function renderWeek() { renderWeekHabits(); renderWeekMovement(); renderWeekMood(); renderWeekFood(); }
+
+function renderWeekHabits() {
+  const el=document.getElementById('week-habits'); const pages=store['notion_pages'];
+  if(!pages||!pages.length){el.innerHTML='<div class="empty">Connect Notion to see your habit streaks.</div>';return;}
+  const fields=[...NOTION_CHECKBOXES,'Exercise?']; const counts={}; fields.forEach(f=>{counts[f]=0;});
+  const total=Math.min(pages.length,7);
+  pages.slice(0,7).forEach(p=>{ fields.forEach(f=>{ if(f==='Exercise?'){if(p[f]&&p[f]!=='Intentional rest day'&&p[f]!=='Too lazy')counts[f]++;}else if(p[f]===true)counts[f]++; }); });
+  const fn={...FRIENDLY,'Exercise?':'Exercised'};
+  const sorted=fields.map(f=>{ const inv=INVERTED.includes(f); const count=inv?total-counts[f]:counts[f]; return{f,count,total,pct:total>0?Math.round(count/total*100):0}; }).sort((a,b)=>b.pct-a.pct);
+  el.innerHTML=sorted.map(({f,count,total,pct})=>{const pill=pct>=70?'pill-green':pct>=40?'pill-amber':'pill-red';return`<div class="data-row"><span class="data-key">${fn[f]||f}</span><div style="display:flex;align-items:center;gap:10px;"><span style="font-size:13px;color:var(--hint);">${count}/${total}</span><span class="pill ${pill}">${pct}%</span></div></div>`;}).join('');
+}
+
+function renderWeekMovement() {
+  const sl=store['fb_sleep_week']||[]; const st=store['fb_steps_week']||[];
+  if(sl.length){const vals=sl.map(d=>d.val);const labels=sl.map(d=>d.date.slice(5));renderBarChart('sleep-bars','sleep-bar-lbls',vals,labels,'#9FE1CB');document.getElementById('w-sleep').textContent=(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1);}
+  if(st.length){document.getElementById('w-steps').textContent=Math.round(st.reduce((a,b)=>a+b.val,0)/st.length).toLocaleString();document.getElementById('w-active').textContent=st.filter(d=>d.val>=7500).length;}
+}
+
+function renderWeekMood() {
+  const data=store['daylio_data']; if(!data||!data.length){document.getElementById('mood-week-card').style.display='none';return;}
+  document.getElementById('mood-week-card').style.display='block';
+  const dates=getWeekDates(); const el=document.getElementById('mood-trend');
+  const bgMap={great:'#E8F4EF',good:'#E8F4EF',upbeat:'#E8F4EF',chill:'#FFF8E6',mixed:'#FFF8E6',meh:'#FFF8E6',flat:'#FDECEA',low:'#FDECEA',struggling:'#FDECEA'};
+  el.innerHTML=dates.map(date=>{ const e=data.find(d=>d.date===date); const emoji=e?(MOOD_EMOJI[e.mood]||'😐'):'·'; const bg=e?(bgMap[e.mood]||'var(--bg)'):'var(--bg)'; const lbl=new Date(date).toLocaleDateString('en-GB',{weekday:'short'}).slice(0,1); return`<div class="mood-dot-wrap"><div class="mood-dot" style="background:${bg};">${emoji}</div><div class="mood-dot-label">${lbl}</div></div>`; }).join('');
+}
+
+function renderWeekFood() {
+  const data=store['mnd_data']; if(!data||!data.length){document.getElementById('food-week-card').style.display='none';return;}
+  const dates=getWeekDates(); const wk=data.filter(d=>dates.includes(d.date));
+  if(!wk.length){document.getElementById('food-week-card').style.display='none';return;}
+  document.getElementById('food-week-card').style.display='block';
+  const avgC=Math.round(wk.reduce((a,b)=>a+b.cals,0)/wk.length);const avgP=Math.round(wk.reduce((a,b)=>a+b.protein,0)/wk.length);const avgCa=Math.round(wk.reduce((a,b)=>a+b.carbs,0)/wk.length);const avgF=Math.round(wk.reduce((a,b)=>a+b.fat,0)/wk.length);
+  document.getElementById('food-week-metrics').innerHTML=`<div class="metric"><div class="metric-label">Avg calories</div><div class="metric-value" style="font-size:18px;">${avgC}</div></div><div class="metric"><div class="metric-label">Avg protein</div><div class="metric-value" style="font-size:18px;">${avgP}g</div></div><div class="metric"><div class="metric-label">Avg carbs</div><div class="metric-value" style="font-size:18px;">${avgCa}g</div></div><div class="metric"><div class="metric-label">Avg fat</div><div class="metric-value" style="font-size:18px;">${avgF}g</div></div>`;
+  const tot=avgP+avgCa+avgF||1;
+  document.getElementById('food-week-macros').innerHTML=`<div class="macro-row"><div class="macro-header"><span>Protein</span><span style="color:var(--muted);">${Math.round(avgP/tot*100)}%</span></div><div class="progress-track"><div class="progress-fill" style="width:${Math.round(avgP/tot*100)}%"></div></div></div><div class="macro-row"><div class="macro-header"><span>Carbs</span><span style="color:var(--muted);">${Math.round(avgCa/tot*100)}%</span></div><div class="progress-track"><div class="progress-fill amber" style="width:${Math.round(avgCa/tot*100)}%"></div></div></div><div class="macro-row"><div class="macro-header"><span>Fat</span><span style="color:var(--muted);">${Math.round(avgF/tot*100)}%</span></div><div class="progress-track"><div class="progress-fill red" style="width:${Math.round(avgF/tot*100)}%"></div></div></div>`;
+}
+
+function renderBarChart(barsId,labelsId,vals,labels,color) {
+  const maxV=Math.max(...vals,1);
+  document.getElementById(barsId).innerHTML=vals.map(v=>`<div class="bar" style="height:${Math.round(v/maxV*65)}px;background:${color};"></div>`).join('');
+  document.getElementById(labelsId).innerHTML=(labels.length?labels:vals.map((_,i)=>i+1)).map(l=>`<div class="bar-lbl">${l}</div>`).join('');
+}
+
+// Summary
+async function generateSummary() {
+  const btn=document.getElementById('summary-btn'); btn.textContent='Generating…'; btn.disabled=true;
+  document.getElementById('summary-sections').style.display='none';
+  const pages=store['notion_pages']||[]; const total=Math.min(pages.length,7);
+  const habitSummary=NOTION_CHECKBOXES.map(f=>`${FRIENDLY[f]||f}: ${pages.slice(0,7).filter(p=>p[f]===true).length}/${total}`).join(', ');
+  const exercises=pages.slice(0,7).map(p=>p['Exercise?']).filter(Boolean);
+  const sl=store['fb_sleep_week']||[]; const st=store['fb_steps_week']||[];
+  const avgSleep=sl.length?(sl.reduce((a,b)=>a+b.val,0)/sl.length).toFixed(1):'not available';
+  const avgSteps=st.length?Math.round(st.reduce((a,b)=>a+b.val,0)/st.length).toLocaleString():'not available';
+  const dates=getWeekDates(); const dData=store['daylio_data']||[];
+  const weekMoods=dData.filter(d=>dates.includes(d.date));
+  const moodSummary=weekMoods.map(d=>`${d.date}: ${d.mood}${d.noteTitle?' ('+d.noteTitle+')':''}`).join(', ')||'no Daylio data this week';
+  const recentNote=weekMoods.find(d=>d.note)?.note?.substring(0,300)||'';
+  const mndData=store['mnd_data']||[]; const weekFood=mndData.filter(d=>dates.includes(d.date));
+  const avgCals=weekFood.length?Math.round(weekFood.reduce((a,b)=>a+b.cals,0)/weekFood.length):0;
+  const avgProtein=weekFood.length?Math.round(weekFood.reduce((a,b)=>a+b.protein,0)/weekFood.length):0;
+  const foodSummary=weekFood.length?`Avg ${avgCals} cal/day, ${avgProtein}g protein`:'no food data this week';
+
+  const prompt=`You are a warm, direct wellness coach for Pankti. She wants honest feedback — direct but kind, never preachy or generic. She is tracking habits, movement, mental wellbeing and food. She cares most about: 1) habits, 2) movement & sleep, 3) mental wellbeing, 4) food.
+
+Data this week:
+HABITS (${total} days logged): ${habitSummary}
+EXERCISE this week: ${exercises.join(', ')||'none logged'}
+SLEEP: avg ${avgSleep}h/night (target 7-9h)
+STEPS: avg ${avgSteps}/day (goal 10,000)
+MOOD: ${moodSummary}
+${recentNote?`JOURNAL: "${recentNote}"`:''}
+FOOD: ${foodSummary}
+CYCLE PHASE: ${store['cycle_phase']||'not logged'}
+
+Write exactly these 5 sections with these exact labels on their own line:
+HABITS — HOW YOU SHOWED UP:
+MOVEMENT & SLEEP:
+HOW YOU'VE BEEN FEELING:
+FOOD & NOURISHMENT:
+FOCUS FOR NEXT WEEK:
+
+Rules: 2-3 sentences per section max. Direct and specific — no generic advice. When she's fallen short, say it plainly and move on. When she's done well, name exactly what. For focus, give 2 concrete actions. No bullet points, no markdown, no asterisks.`;
+
+  try {
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,messages:[{role:'user',content:prompt}]})});
+    const data=await r.json(); const text=data.content?.[0]?.text||'';
+    const sections={'HABITS — HOW YOU SHOWED UP:':'sum-habits','MOVEMENT & SLEEP:':'sum-movement',"HOW YOU'VE BEEN FEELING:":'sum-mental','FOOD & NOURISHMENT:':'sum-food','FOCUS FOR NEXT WEEK:':'sum-focus'};
+    const labels=Object.keys(sections);
+    labels.forEach((label,i)=>{ const start=text.indexOf(label); if(start===-1)return; const cs=start+label.length; const next=labels[i+1]?text.indexOf(labels[i+1],cs):text.length; document.getElementById(sections[label]).textContent=text.substring(cs,next!==-1?next:undefined).trim(); });
+    document.getElementById('summary-sections').style.display='block';
+  } catch(e){alert('Could not generate summary — try again.');}
+  btn.textContent='Regenerate →'; btn.disabled=false;
+}
+</script>
+</body>
+</html>
